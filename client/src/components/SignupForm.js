@@ -131,6 +131,7 @@ const SignupForm = () => {
           Submit
         </Button>
       </Form>
+      {error && <div>Issues with Signup</div>}
     </>
   );
 };
