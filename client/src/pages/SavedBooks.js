@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Jumbotron,
   Container,
@@ -21,6 +21,7 @@ const SavedBooks = () => {
   const [removeBook] = useMutation(REMOVE_BOOK);
 
   const userData = data?.me || [];
+  useEffect(() => console.log(userData), [userData]);
 
   // use this to determine if `useEffect()` hook needs to run again
   // const userDataLength = Object.keys(userData).length;
@@ -88,14 +89,14 @@ const SavedBooks = () => {
       </Jumbotron>
       <Container>
         <h2>
-          {userData.me.savedBooks.length
-            ? `Viewing ${userData.me.savedBooks.length} saved ${
-                userData.me.savedBooks.length === 1 ? "book" : "books"
+          {userData?.savedBooks?.length > 0
+            ? `Viewing ${userData.savedBooks.length} saved ${
+                userData.savedBooks.length === 1 ? "book" : "books"
               }:`
             : "You have no saved books!"}
         </h2>
         <CardColumns>
-          {userData.me.savedBooks.map((book) => {
+          {userData?.savedBooks?.map((book) => {
             return (
               <Card key={book.bookId} border="dark">
                 {book.image ? (

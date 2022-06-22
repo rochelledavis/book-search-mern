@@ -6,9 +6,10 @@ const resolvers = {
   Query: {
     me: async (parent, args, context) => {
       if (context.user) {
-        const userData = await User.findOne({ _id: context.user._id })
-          .select("-__v -password")
-          .populate("books");
+        const userData = await User.findOne({
+          $or: [{ _id: context.user._id }, { username: context.user.username }],
+        }).select("-__v -password");
+        //.populate("books");
 
         return userData;
       }
@@ -55,33 +56,34 @@ const resolvers = {
       const token = signToken(user);
       return { token, user };
     },
-    saveBook: async ({ user, body }, res) => {
-      console.log(user);
-      try {
-        const updatedUser = await User.findOneAndUpdate(
-          { _id: user._id },
-          { $addToSet: { savedBooks: body } },
-          { new: true, runValidators: true }
+    saveBook: async (parent, { input }, context) => {
+      if (context.user) {
+        const updatedUser = await User.findByIdAndUpdate(
+          { _id: context.user._id },
+          { $push: { savedBooks: input } },
+          { new: true }
         );
-        return res.json(updatedUser);
-      } catch (err) {
-        console.log(err);
-        return res.status(400).json(err);
+        console.log("updatedUser", updatedUser);
+
+        return updatedUser;
       }
+      throw new AuthenticationError("You need to be logged in!");
     },
 
-    removeBook: async ({ user, params }, res) => {
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: user._id },
-        { $pull: { savedBooks: { bookId: params.bookId } } },
-        { new: true }
-      );
-      if (!updatedUser) {
-        return res
-          .status(404)
-          .json({ message: "Couldn't find user with this id!" });
+    removeBook: async (parent, args, context) => {
+      console.log(context.user, "context");
+      console.log(args.bookId, "args");
+      if (context.user) {
+        const updatedUser = await User.findByIdAndUpdate(
+          { _id: context.user._id },
+          { $pull: { savedBooks: { bookId: args.bookId } } },
+          { new: true }
+        );
+
+        return updatedUser;
       }
-      return res.json(updatedUser);
+
+      throw new AuthenticationError("You need to be logged in!");
     },
   },
 };
